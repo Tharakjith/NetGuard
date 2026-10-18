@@ -31,6 +31,13 @@ public partial class App : Application
             new FrameworkPropertyMetadata(System.Windows.Markup.XmlLanguage.GetLanguage(CultureInfo.CurrentCulture.IetfLanguageTag)));
         PipeTrust.Configure(e.Args);
 
+        // Standalone build: elevated service install/uninstall verbs run without the interface.
+        if (ServiceBootstrapper.TryRunVerb(e.Args) is { } exitCode)
+        {
+            Shutdown(exitCode);
+            return;
+        }
+
         // When restarted elevated, wait for the previous (non-elevated) instance to exit first.
         var afterIndex = Array.IndexOf(e.Args, "--after");
         if (afterIndex >= 0 && afterIndex + 1 < e.Args.Length && int.TryParse(e.Args[afterIndex + 1], out var previousPid))
@@ -63,6 +70,7 @@ public partial class App : Application
 
         var preferences = UserPreferences.Load();
         ThemeManager.Apply(preferences.Theme);
+        await EnsureServiceInstalledAsync();
 
         _client = new NetGuardClient();
         _events = new EventPump(Dispatcher);
@@ -102,6 +110,28 @@ public partial class App : Application
         }
 
         _events.Start();
+    }
+
+    /// <summary>Standalone build: offers to install or update the embedded service. Declining still opens the interface.</summary>
+    private static async Task EnsureServiceInstalledAsync()
+    {
+        var state = ServiceBootstrapper.GetState();
+        if (state is ServiceBootstrapper.State.NotManaged or ServiceBootstrapper.State.Current)
+        {
+            return;
+        }
+
+        var message = state == ServiceBootstrapper.State.NotInstalled
+            ? "NetGuard Enterprise enforces policies through a background Windows service, which is not installed on this computer yet.\n\n" +
+              $"Install it now? It will be placed in:\n{ServiceBootstrapper.InstallDirectory}\n\nWindows will ask for administrator permission."
+            : "This copy of NetGuard Enterprise contains a different version of the background service than the one installed.\n\n" +
+              "Update the service now? Existing policies are kept. Windows will ask for administrator permission.";
+        if (!Dialogs.Confirm("NetGuard Enterprise", message, state == ServiceBootstrapper.State.NotInstalled ? "Install" : "Update"))
+        {
+            return;
+        }
+
+        await ServiceBootstrapper.RunElevatedAsync(ServiceBootstrapper.InstallVerb);
     }
 
     private void ShowMainWindow()

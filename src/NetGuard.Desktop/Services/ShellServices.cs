@@ -97,13 +97,12 @@ public static class Dialogs
 {
     public static bool Confirm(string title, string message, string confirmLabel = "Continue")
     {
-        var owner = Application.Current.MainWindow;
-        return MessageBox.Show(owner, message + $"\n\nSelect OK to {confirmLabel.ToLowerInvariant()}.", title, MessageBoxButton.OKCancel, MessageBoxImage.Warning, MessageBoxResult.Cancel) == MessageBoxResult.OK;
+        return Show(message + $"\n\nSelect OK to {confirmLabel.ToLowerInvariant()}.", title, MessageBoxButton.OKCancel, MessageBoxImage.Warning, MessageBoxResult.Cancel) == MessageBoxResult.OK;
     }
 
     /// <summary>Yes/No/Cancel question. Returns true for Yes, false for No, null for Cancel.</summary>
     public static bool? Ask(string title, string message) =>
-        MessageBox.Show(Application.Current.MainWindow, message, title, MessageBoxButton.YesNoCancel, MessageBoxImage.Question, MessageBoxResult.Cancel) switch
+        Show(message, title, MessageBoxButton.YesNoCancel, MessageBoxImage.Question, MessageBoxResult.Cancel) switch
         {
             MessageBoxResult.Yes => true,
             MessageBoxResult.No => false,
@@ -113,11 +112,17 @@ public static class Dialogs
     public static void Error(string title, string message, IReadOnlyList<string>? details = null)
     {
         var text = details is { Count: > 0 } ? message + "\n\n• " + string.Join("\n• ", details.Take(15)) : message;
-        MessageBox.Show(Application.Current.MainWindow, text, title, MessageBoxButton.OK, MessageBoxImage.Error);
+        Show(text, title, MessageBoxButton.OK, MessageBoxImage.Error);
     }
 
     public static void Info(string title, string message) =>
-        MessageBox.Show(Application.Current.MainWindow, message, title, MessageBoxButton.OK, MessageBoxImage.Information);
+        Show(message, title, MessageBoxButton.OK, MessageBoxImage.Information);
+
+    /// <summary>Owned by the main window when there is one; WPF throws for a null owner (startup, elevated verbs).</summary>
+    private static MessageBoxResult Show(string text, string title, MessageBoxButton buttons, MessageBoxImage image, MessageBoxResult defaultResult = MessageBoxResult.None) =>
+        Application.Current?.MainWindow is { } owner
+            ? MessageBox.Show(owner, text, title, buttons, image, defaultResult)
+            : MessageBox.Show(text, title, buttons, image, defaultResult);
 
     public static string? OpenExecutable()
     {

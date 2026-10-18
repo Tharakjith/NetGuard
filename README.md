@@ -136,6 +136,16 @@ Installed systems do not need a separate .NET runtime; the MSI publishes self-co
 
 3. Use **Restart as administrator** in the application if you need to make policy changes and are not a member of **NetGuard Operators**.
 
+### Run the standalone EXE (no installer)
+
+Build a single portable file with `.\scripts\publish-standalone.ps1`. The output is `artifacts\standalone\NetGuardEnterprise.exe`. It is self-contained, so the target computer needs no .NET runtime.
+
+1. Copy `NetGuardEnterprise.exe` to any folder on a Windows 10/11 x64 computer and run it.
+2. On first run it offers to install the background service. After one UAC prompt, the service is placed in `%ProgramFiles%\NetGuard Enterprise Portable\Service`, registered as `NetGuardService` (LocalSystem, automatic start), and started. If you run a different build of the EXE later, it offers to update the service; policies are kept.
+3. To remove the service and the firewall rules NetGuard created, run `NetGuardEnterprise.exe --uninstall-service`.
+
+If a service was already installed by the MSI, the standalone EXE uses it and does not change it.
+
 ### Run a development build
 
 From the repository root, use an elevated PowerShell prompt to build and install the development service:

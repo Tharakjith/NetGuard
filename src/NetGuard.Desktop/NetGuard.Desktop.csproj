@@ -28,4 +28,8 @@
   <ItemGroup>
     <Resource Include="Assets\netguard.ico" />
   </ItemGroup>
+  <!-- Standalone single-EXE build (scripts/publish-standalone.ps1): embeds the zipped self-contained service. -->
+  <ItemGroup Condition="'$(EmbeddedServicePackage)' != ''">
+    <EmbeddedResource Include="$(EmbeddedServicePackage)" LogicalName="NetGuard.ServicePackage.zip" />
+  </ItemGroup>
 </Project>

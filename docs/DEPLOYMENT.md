@@ -6,13 +6,13 @@
 ./scripts/build-installer.ps1 -Version 1.2.0 -Thumbprint <code-signing certificate thumbprint>
 ```
 
-The script:
+The script produces both a signed MSI and a single-file Burn EXE bundle containing that MSI:
 
 1. builds the solution in Release and runs all automated tests;
 2. publishes the service and desktop app as self-contained `win-x64` builds into `artifacts\publish`;
 3. signs every `NetGuard.*.exe`/`.dll` with SHA-256 and an RFC 3161 timestamp, and verifies each signature;
 4. builds `artifacts\installer\NetGuardEnterprise-1.2.0-x64.msi` with WiX v5;
-5. signs the MSI and writes `…msi.sha256`.
+5. signs the MSI, bundles it into `artifacts\installer\NetGuardEnterprise-1.2.0-x64.exe`, signs the EXE, and writes SHA-256 checksum files for both.
 
 `-Unsigned` produces an internal test build and prints a warning. Never distribute unsigned builds: About & Security shows the signature state, and many enterprise application-control policies (WDAC/AppLocker) will block unsigned binaries.
 
@@ -26,7 +26,8 @@ The script:
 
 | Scenario | Command |
 |---|---|
-| Interactive | Double-click the MSI (requires administrator) |
+| Interactive, one-file download | Double-click `NetGuardEnterprise-1.2.0-x64.exe` (requires administrator) |
+| Interactive MSI | Double-click the MSI (requires administrator) |
 | Silent | `msiexec /i NetGuardEnterprise-1.2.0-x64.msi /qn /l*v "%TEMP%\netguard-install.log"` |
 | Intune (Win32 app or LOB MSI) | Install command as above. Detection: MSI product code, or the service `NetGuardService` exists. |
 | Configuration Manager / Group Policy software installation | Standard per-machine MSI, no transforms needed |

@@ -1,0 +1,15 @@
+<Project Sdk="WixToolset.Sdk/5.0.2">
+  <PropertyGroup>
+    <OutputType>Bundle</OutputType>
+    <OutputName>NetGuardEnterprise-$(ProductVersion)-x64</OutputName>
+    <InstallerPlatform>x64</InstallerPlatform>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <ProductVersion Condition="'$(ProductVersion)' == ''">1.0.0</ProductVersion>
+    <MsiPath Condition="'$(MsiPath)' == ''">$(MSBuildThisFileDirectory)..\artifacts\installer\NetGuardEnterprise-$(ProductVersion)-x64.msi</MsiPath>
+    <DefineConstants>MsiPath=$(MsiPath);ProductVersion=$(ProductVersion)</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Bundle.wxs" />
+    <PackageReference Include="WixToolset.Bal.wixext" />
+  </ItemGroup>
+</Project>

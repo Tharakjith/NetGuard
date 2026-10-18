@@ -1,0 +1,15 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:bal="http://wixtoolset.org/schemas/v4/wxs/bal">
+  <Bundle Name="NetGuard Enterprise"
+          Manufacturer="NetGuard Enterprise"
+          Version="$(var.ProductVersion)"
+          UpgradeCode="6B3D0C1F-7A2E-4D9B-8C5F-1A0E2B4D6F8C"
+          Compressed="yes">
+    <BootstrapperApplication>
+      <bal:WixStandardBootstrapperApplication Theme="none" LicenseUrl="" />
+    </BootstrapperApplication>
+    <Chain>
+      <MsiPackage SourceFile="$(var.MsiPath)" />
+    </Chain>
+  </Bundle>
+</Wix>

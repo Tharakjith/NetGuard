@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Produces the release MSI: test → publish → sign binaries → build MSI → sign MSI.
+    Produces the release EXE and MSI: test → publish → sign binaries → build MSI and bundle → sign installers.
 .EXAMPLE
     ./scripts/build-installer.ps1 -Version 1.0.0 -Thumbprint 0123ABCD...
     ./scripts/build-installer.ps1 -Version 1.0.0 -Unsigned      # internal test builds only
@@ -35,11 +35,25 @@ if ($LASTEXITCODE) { throw 'Building the MSI failed.' }
 $msi = Join-Path $installerOut "NetGuardEnterprise-$Version-x64.msi"
 if (-not $Unsigned) {
     & (Join-Path $PSScriptRoot 'sign.ps1') -Path $msi -Thumbprint $Thumbprint
+}
+
+$bundleProject = Join-Path $root 'installer\NetGuard.Bundle.wixproj'
+dotnet build $bundleProject -c Release -nologo `
+    "-p:MsiPath=$msi" "-p:ProductVersion=$Version" -o $installerOut
+if ($LASTEXITCODE) { throw 'Building the EXE installer failed.' }
+
+$exe = Join-Path $installerOut "NetGuardEnterprise-$Version-x64.exe"
+if (-not $Unsigned) {
+    & (Join-Path $PSScriptRoot 'sign.ps1') -Path $exe -Thumbprint $Thumbprint
 } else {
-    Write-Warning 'The MSI and binaries are NOT signed. Do not distribute this build.'
+    Write-Warning 'The EXE, MSI and binaries are NOT signed. Do not distribute this build.'
 }
 
 $hash = (Get-FileHash $msi -Algorithm SHA256).Hash
 "$hash  $(Split-Path $msi -Leaf)" | Set-Content "$msi.sha256" -Encoding ascii
-Write-Host "Installer: $msi"
-Write-Host "SHA-256:   $hash"
+$exeHash = (Get-FileHash $exe -Algorithm SHA256).Hash
+"$exeHash  $(Split-Path $exe -Leaf)" | Set-Content "$exe.sha256" -Encoding ascii
+Write-Host "EXE installer: $exe"
+Write-Host "MSI installer: $msi"
+Write-Host "EXE SHA-256: $exeHash"
+Write-Host "MSI SHA-256: $hash"

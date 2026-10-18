@@ -13,11 +13,13 @@
     <NormalizedPublishRoot>$([MSBuild]::EnsureTrailingSlash('$(PublishRoot)'))</NormalizedPublishRoot>
     <DefineConstants>PublishRoot=$(NormalizedPublishRoot);ProductVersion=$(ProductVersion);RepoRoot=$(MSBuildThisFileDirectory)..\</DefineConstants>
     <SuppressValidation>false</SuppressValidation>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <!-- ICE38/43/57 assume per-user installs. This package is perMachine (ALLUSERS=1), so ProgramMenuFolder is the
          all-users Start menu and an HKLM key path for the shortcut component is correct. All other ICEs run. -->
     <SuppressIces>ICE38;ICE43;ICE57</SuppressIces>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Package.wxs" />
     <PackageReference Include="WixToolset.Util.wixext" />
   </ItemGroup>
 </Project>

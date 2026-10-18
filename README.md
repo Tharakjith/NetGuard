@@ -182,13 +182,14 @@ Closing the desktop app, logging off, or rebooting does not remove persistent fi
 | Run unit tests | `dotnet test tests\NetGuard.Tests.Unit` |
 | Run integration tests | `dotnet test tests\NetGuard.Tests.Integration` |
 | Publish self-contained binaries | `.\scripts\publish.ps1 -Version 1.0.0` |
-| Build a signed release MSI | `.\scripts\build-installer.ps1 -Version 1.0.0 -Thumbprint <cert thumbprint>` |
-| Build an unsigned internal MSI | `.\scripts\build-installer.ps1 -Version 1.0.0 -Unsigned` |
+| Build signed release EXE and MSI installers | `.\scripts\build-installer.ps1 -Version 1.0.0 -Thumbprint <cert thumbprint>` |
+| Build unsigned internal EXE and MSI installers | `.\scripts\build-installer.ps1 -Version 1.0.0 -Unsigned` |
+| Share the installer | Send `artifacts\installer\NetGuardEnterprise-1.0.0-x64.exe`; run it as administrator |
 | Silent install | `msiexec /i NetGuardEnterprise-1.0.0-x64.msi /qn /l*v install.log` |
 | Silent uninstall (removes NetGuard-owned rules) | `msiexec /x NetGuardEnterprise-1.0.0-x64.msi /qn` |
 | Uninstall while keeping rules | `msiexec /x NetGuardEnterprise-1.0.0-x64.msi /qn KEEPRULES=1` |
 
-Never distribute unsigned builds. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for signing, managed deployment, organization policy, upgrade, and uninstall guidance. Firewall-write and end-to-end traffic tests are gated; see [docs/TESTING.md](docs/TESTING.md) for their requirements and manual scenarios.
+The EXE bundles the MSI and installs the desktop app and Windows service; it is not a portable app. Never distribute unsigned builds. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for signing, managed deployment, organization policy, upgrade, and uninstall guidance. Firewall-write and end-to-end traffic tests are gated; see [docs/TESTING.md](docs/TESTING.md) for their requirements and manual scenarios.
 
 ## 📦 Data Locations
 

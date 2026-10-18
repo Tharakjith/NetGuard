@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <RootNamespace>NetGuard.Tests.Integration</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\NetGuard.Core\NetGuard.Core.csproj" />
+    <ProjectReference Include="..\..\src\NetGuard.Persistence.Sqlite\NetGuard.Persistence.Sqlite.csproj" />
+    <ProjectReference Include="..\..\src\NetGuard.Platform.Windows\NetGuard.Platform.Windows.csproj" />
+    <ProjectReference Include="..\..\src\NetGuard.Ipc\NetGuard.Ipc.csproj" />
+    <!-- The controlled test application is copied next to the tests for end-to-end traffic verification. -->
+    <ProjectReference Include="..\..\tools\NetGuard.NetProbe\NetGuard.NetProbe.csproj" />
+  </ItemGroup>
+</Project>

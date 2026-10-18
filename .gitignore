@@ -1,0 +1,13 @@
+bin/
+obj/
+artifacts/
+publish/
+TestResults/
+*.user
+*.suo
+.vs/
+*.binlog
+installer/**/bin/
+installer/**/obj/
+*.pfx
+*.snk

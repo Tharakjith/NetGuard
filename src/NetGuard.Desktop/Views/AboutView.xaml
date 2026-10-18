@@ -1,0 +1,45 @@
+<UserControl x:Class="NetGuard.Desktop.Views.AboutView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="0,0,12,24" MaxWidth="900" HorizontalAlignment="Left">
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                <Image Source="/Assets/netguard.ico" Width="48" Height="48" Margin="0,0,16,0" />
+                <StackPanel>
+                    <TextBlock Style="{StaticResource PageTitle}" Text="NetGuard Enterprise" />
+                    <TextBlock Style="{StaticResource Caption}" Text="Per-application network control for Windows using Windows Defender Firewall." />
+                </StackPanel>
+            </StackPanel>
+
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource SectionTitle}" Text="Versions" />
+                    <TextBlock><Run Text="Desktop: " /><Run Text="{Binding Version, Mode=OneWay}" /></TextBlock>
+                    <TextBlock><Run Text="Service: " /><Run Text="{Binding ServiceVersion, Mode=OneWay}" /></TextBlock>
+                    <TextBlock><Run Text="Control protocol: " /><Run Text="{Binding ProtocolVersion, Mode=OneWay}" /></TextBlock>
+                    <TextBlock Text="{Binding Signature}" TextWrapping="Wrap" Margin="0,8,0,0" />
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource SectionTitle}" Text="Your access" />
+                    <TextBlock Text="{Binding CallerText}" TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource SectionTitle}" Text="Security model" />
+                    <ItemsControl ItemsSource="{Binding SecurityModel}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate><TextBlock Text="{Binding StringFormat='• {0}'}" TextWrapping="Wrap" Margin="0,3" /></DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock Style="{StaticResource Caption}" Margin="0,8,0,0" TextWrapping="Wrap"
+                               Text="See docs/SECURITY.md, docs/THREAT_MODEL.md and docs/LIMITATIONS.md in the installation package for details." />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

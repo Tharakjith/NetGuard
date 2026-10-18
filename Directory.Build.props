@@ -1,0 +1,19 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Deterministic>true</Deterministic>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+
+    <Company>NetGuard Enterprise</Company>
+    <Product>NetGuard Enterprise</Product>
+    <Copyright>Copyright © NetGuard Enterprise contributors</Copyright>
+    <VersionPrefix>1.0.0</VersionPrefix>
+
+    <!-- Windows 10 1809 is the oldest release this product is tested against. -->
+    <SupportedOSPlatformVersion Condition="$(TargetFramework.Contains('-windows'))">10.0.17763.0</SupportedOSPlatformVersion>
+  </PropertyGroup>
+</Project>

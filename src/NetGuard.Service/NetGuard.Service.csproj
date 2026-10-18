@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>NetGuard.Service</RootNamespace>
+    <AssemblyName>NetGuard.Service</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
+    <TieredPGO>true</TieredPGO>
+    <InvariantGlobalization>false</InvariantGlobalization>
+    <UserSecretsId>netguard-service</UserSecretsId>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NetGuard.Core\NetGuard.Core.csproj" />
+    <ProjectReference Include="..\NetGuard.Persistence.Sqlite\NetGuard.Persistence.Sqlite.csproj" />
+    <ProjectReference Include="..\NetGuard.Platform.Windows\NetGuard.Platform.Windows.csproj" />
+    <ProjectReference Include="..\NetGuard.Logging\NetGuard.Logging.csproj" />
+    <ProjectReference Include="..\NetGuard.Ipc\NetGuard.Ipc.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="NetGuard.Tests.Integration" />
+  </ItemGroup>
+</Project>

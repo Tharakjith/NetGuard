@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.netguard.local/policy/v1.json",
+  "title": "NetGuard Enterprise policy document",
+  "description": "Export/import format for NetGuard Enterprise application network policies. NetGuard validates documents with equivalent rules in code (unknown properties are rejected) and additionally validates paths, address lists and port lists semantically.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": 1, "description": "Documents with a higher version are rejected; lower versions are migrated." },
+    "product": { "type": "string" },
+    "exportedAt": { "type": "string", "format": "date-time" },
+    "exportedBy": { "type": "string" },
+    "scope": { "enum": ["user", "organization"], "default": "user" },
+    "profiles": { "type": "array", "items": { "$ref": "#/$defs/profile" } },
+    "applications": { "type": "array", "items": { "$ref": "#/$defs/application" } },
+    "settings": { "$ref": "#/$defs/settings" }
+  },
+  "$defs": {
+    "guid": { "type": "string", "pattern": "^[0-9a-fA-F]{8}-?([0-9a-fA-F]{4}-?){3}[0-9a-fA-F]{12}$" },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode"],
+      "properties": {
+        "mode": { "enum": ["Allow", "Block", "Custom"] },
+        "retention": { "enum": ["Persistent", "WhileRunning"], "default": "Persistent" },
+        "networkProfiles": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "enum": ["Domain", "Private", "Public"] },
+          "default": ["Domain", "Private", "Public"]
+        },
+        "custom": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Required when mode is Custom. A connection is allowed only if its destination AND protocol/port are allowed.",
+          "properties": {
+            "allowedRemoteAddresses": {
+              "type": "array",
+              "maxItems": 200,
+              "items": { "type": "string", "description": "IPv4/IPv6 address, CIDR block (a.b.c.d/n or a.b.c.d/mask) or range (a-b), or \"*\". Firewall keywords are not allowed." }
+            },
+            "allowLocalNetwork": { "type": "boolean", "default": false },
+            "allowedTcpPorts": { "type": "string", "description": "\"*\" for all, \"\" for none, or e.g. \"443,8000-8100\"" },
+            "allowedUdpPorts": { "type": "string" },
+            "allowIcmp": { "type": "boolean", "default": false }
+          }
+        }
+      }
+    },
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "policy"],
+      "properties": {
+        "id": { "$ref": "#/$defs/guid" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "description": { "type": "string", "maxLength": 500 },
+        "enabled": { "type": "boolean", "default": false },
+        "policy": { "$ref": "#/$defs/policy" }
+      }
+    },
+    "application": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["displayName", "policy", "executables"],
+      "properties": {
+        "id": { "$ref": "#/$defs/guid" },
+        "displayName": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "publisher": { "type": ["string", "null"] },
+        "enabled": { "type": "boolean", "default": true },
+        "profileId": { "oneOf": [{ "$ref": "#/$defs/guid" }, { "type": "null" }] },
+        "includeChildProcesses": { "type": "boolean", "default": true },
+        "followSignedUpdates": { "type": "boolean", "default": true },
+        "allowSystemComponent": { "type": "boolean", "default": false },
+        "policy": { "$ref": "#/$defs/policy" },
+        "executables": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path"],
+            "properties": {
+              "path": { "type": "string", "pattern": "^[A-Za-z]:\\\\.+\\.[eE][xX][eE]$", "maxLength": 1024 },
+              "primary": { "type": "boolean", "default": false },
+              "sha256": { "type": ["string", "null"], "pattern": "^[0-9A-Fa-f]{64}$" },
+              "signerSubject": { "type": ["string", "null"] }
+            }
+          }
+        }
+      }
+    },
+    "settings": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "auditRetentionDays": { "type": "integer", "minimum": 7, "maximum": 3650 },
+        "logRetentionDays": { "type": "integer", "minimum": 1, "maximum": 365 },
+        "integrityCheckIntervalMinutes": { "type": "integer", "minimum": 1, "maximum": 1440 },
+        "whileRunningGraceSeconds": { "type": "integer", "minimum": 0, "maximum": 300 },
+        "allowStandardUserRead": { "type": "boolean" },
+        "observeBlockedConnections": { "type": "boolean" },
+        "defaultRetention": { "enum": ["Persistent", "WhileRunning"] },
+        "maxTemporaryExceptionMinutes": { "type": "integer", "minimum": 1, "maximum": 1440 }
+      }
+    }
+  }
+}

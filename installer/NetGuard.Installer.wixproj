@@ -1,0 +1,23 @@
+<Project Sdk="WixToolset.Sdk/5.0.2">
+  <!--
+    Builds NetGuardEnterprise-<version>-x64.msi from published, already-signed binaries.
+    Normally invoked by scripts/build-installer.ps1, which publishes, signs and then builds this project:
+      dotnet build installer/NetGuard.Installer.wixproj -c Release -p:PublishRoot=<dir> -p:ProductVersion=1.0.0
+  -->
+  <PropertyGroup>
+    <OutputName>NetGuardEnterprise-$(ProductVersion)-x64</OutputName>
+    <InstallerPlatform>x64</InstallerPlatform>
+    <ProductVersion Condition="'$(ProductVersion)' == ''">1.0.0</ProductVersion>
+    <PublishRoot Condition="'$(PublishRoot)' == ''">$(MSBuildThisFileDirectory)..\artifacts\publish</PublishRoot>
+    <!-- PublishRoot may arrive as a global property (which cannot be reassigned), so normalize into a new one. -->
+    <NormalizedPublishRoot>$([MSBuild]::EnsureTrailingSlash('$(PublishRoot)'))</NormalizedPublishRoot>
+    <DefineConstants>PublishRoot=$(NormalizedPublishRoot);ProductVersion=$(ProductVersion);RepoRoot=$(MSBuildThisFileDirectory)..\</DefineConstants>
+    <SuppressValidation>false</SuppressValidation>
+    <!-- ICE38/43/57 assume per-user installs. This package is perMachine (ALLUSERS=1), so ProgramMenuFolder is the
+         all-users Start menu and an HKLM key path for the shortcut component is correct. All other ICEs run. -->
+    <SuppressIces>ICE38;ICE43;ICE57</SuppressIces>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="WixToolset.Util.wixext" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,151 @@
+<Window x:Class="NetGuard.Desktop.Views.PolicyEditorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="{Binding WindowTitle}" Width="760" Height="820" MinWidth="560" MinHeight="500"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False" ResizeMode="CanResizeWithGrip">
+    <DockPanel Margin="20">
+        <!-- Footer -->
+        <StackPanel DockPanel.Dock="Bottom" Margin="0,12,0,0">
+            <Border Style="{StaticResource WarningPanel}" Visibility="{Binding ErrorText, Converter={StaticResource NullToVisibility}}">
+                <StackPanel>
+                    <TextBlock Text="{Binding ErrorText}" TextWrapping="Wrap" FontWeight="SemiBold" AutomationProperties.LiveSetting="Assertive" />
+                    <ItemsControl ItemsSource="{Binding ValidationErrors}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding StringFormat='• {0}'}" TextWrapping="Wrap" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Style="{DynamicResource AccentButtonStyle}" Content="Save and apply" Command="{Binding SaveCommand}" IsDefault="True" MinWidth="120" Margin="0,0,8,0" />
+                <Button Content="Cancel" Command="{Binding CancelCommand}" IsCancel="True" MinWidth="90" />
+            </StackPanel>
+        </StackPanel>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="0,0,8,0">
+                <TextBlock Style="{StaticResource FieldLabel}" Text="Name" Margin="0,0,0,2" />
+                <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsNameEditable}" AutomationProperties.Name="Name" />
+                <StackPanel Visibility="{Binding IsProfile, Converter={StaticResource BoolToVisibility}}">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="Description" />
+                    <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" AcceptsReturn="True" MinHeight="50" AutomationProperties.Name="Description" />
+                </StackPanel>
+
+                <!-- Executables (applications only) -->
+                <StackPanel Visibility="{Binding IsApplication, Converter={StaticResource BoolToVisibility}}">
+                    <TextBlock Style="{StaticResource SectionTitle}" Text="Executables" Margin="0,16,0,4" />
+                    <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,6"
+                               Text="Rules apply to exactly these files (resolved paths). Include helper programs the application uses to communicate, such as updaters or crash reporters in its folder." />
+                    <ItemsControl ItemsSource="{Binding Executables}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <CheckBox IsChecked="{Binding IsSelected}" IsEnabled="{Binding CanToggle}" Margin="0,4">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding Path}" TextWrapping="Wrap" FontFamily="Cascadia Mono, Consolas" FontSize="12" />
+                                        <TextBlock Text="{Binding Detail}" Style="{StaticResource Caption}" />
+                                    </StackPanel>
+                                </CheckBox>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                        <Button Content="Find helpers in the same folder" Command="{Binding ScanRelatedCommand}" Margin="0,0,8,0" />
+                        <Button Content="Add another executable…" Command="{Binding AddExecutableCommand}" />
+                    </StackPanel>
+                    <ItemsControl ItemsSource="{Binding Warnings}" Margin="0,8,0,0">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding StringFormat='⚠ {0}'}" TextWrapping="Wrap" Foreground="{DynamicResource StatusWarningBrush}" Margin="0,2" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+
+                <!-- Policy -->
+                <TextBlock Style="{StaticResource SectionTitle}" Text="Network policy" Margin="0,16,0,4" />
+                <RadioButton GroupName="Mode" IsChecked="{Binding IsBlock}" Margin="0,2">
+                    <StackPanel>
+                        <TextBlock Text="Block internet access" FontWeight="SemiBold" />
+                        <TextBlock Style="{StaticResource Caption}" Text="Blocks all outbound IPv4 and IPv6 connections from the selected executables. Other applications are unaffected." />
+                    </StackPanel>
+                </RadioButton>
+                <RadioButton GroupName="Mode" IsChecked="{Binding IsCustom}" Margin="0,2">
+                    <StackPanel>
+                        <TextBlock Text="Custom allow-list" FontWeight="SemiBold" />
+                        <TextBlock Style="{StaticResource Caption}" Text="Allow only the destinations, protocols and ports you list; block everything else." />
+                    </StackPanel>
+                </RadioButton>
+                <RadioButton GroupName="Mode" IsChecked="{Binding IsAllow}" Margin="0,2">
+                    <StackPanel>
+                        <TextBlock Text="Allow" FontWeight="SemiBold" />
+                        <TextBlock Style="{StaticResource Caption}" Text="NetGuard creates no rules; the existing firewall configuration applies." />
+                    </StackPanel>
+                </RadioButton>
+
+                <StackPanel Visibility="{Binding IsCustom, Converter={StaticResource BoolToVisibility}}" Margin="24,8,0,0">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="Allowed destinations (IP addresses, CIDR blocks or ranges; one per line)" />
+                    <TextBox Text="{Binding AllowedAddresses, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" MinHeight="70" TextWrapping="NoWrap"
+                             VerticalScrollBarVisibility="Auto" FontFamily="Cascadia Mono, Consolas" AutomationProperties.Name="Allowed destinations" />
+                    <CheckBox IsChecked="{Binding AllowLocalNetwork}" Content="Also allow the local network (private ranges, link-local, local multicast)" Margin="0,6,0,0" />
+                    <Grid Margin="0,4,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition />
+                            <ColumnDefinition Width="16" />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="Allowed TCP ports (* = all, empty = none)" />
+                            <TextBox Text="{Binding TcpPorts, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Allowed TCP ports" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="Allowed UDP ports (* = all, empty = none)" />
+                            <TextBox Text="{Binding UdpPorts, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Allowed UDP ports" />
+                        </StackPanel>
+                    </Grid>
+                    <CheckBox IsChecked="{Binding AllowIcmp}" Content="Allow ICMP (ping) to allowed destinations" Margin="0,6,0,0" />
+                    <TextBlock Style="{StaticResource Caption}" Margin="0,6,0,0"
+                               Text="Host names are not supported: Windows Firewall filters by IP address. DNS resolution is performed by Windows on the application's behalf and is not affected." />
+                </StackPanel>
+
+                <StackPanel Visibility="{Binding IsRestricting, Converter={StaticResource BoolToVisibility}}">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="When are the rules in place?" Margin="0,12,0,2" />
+                    <RadioButton GroupName="Retention" IsChecked="{Binding IsPersistent}" Margin="0,2"
+                                 Content="Always (recommended) — the restriction exists before launch and after exit" />
+                    <RadioButton GroupName="Retention" IsChecked="{Binding IsWhileRunning}" Margin="0,2"
+                                 Content="Only while the application runs — created on launch, removed after exit" />
+                    <TextBlock Style="{StaticResource Caption}" Margin="24,0,0,0" Foreground="{DynamicResource StatusWarningBrush}"
+                               Visibility="{Binding IsWhileRunning, Converter={StaticResource BoolToVisibility}}"
+                               Text="Rules are created a moment after the process starts, so its very first connection attempts may not be blocked." />
+
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="Apply on these network types" Margin="0,12,0,2" />
+                    <StackPanel Orientation="Horizontal">
+                        <CheckBox IsChecked="{Binding DomainProfile}" Content="Domain" Margin="0,0,16,0" />
+                        <CheckBox IsChecked="{Binding PrivateProfile}" Content="Private" Margin="0,0,16,0" />
+                        <CheckBox IsChecked="{Binding PublicProfile}" Content="Public" />
+                    </StackPanel>
+                    <TextBlock Style="{StaticResource Caption}" Margin="0,6,0,0"
+                               Text="Connections that are already open when a rule is created may continue until they close. Restart the application for a clean state." />
+                </StackPanel>
+
+                <!-- Application options -->
+                <StackPanel Visibility="{Binding IsApplication, Converter={StaticResource BoolToVisibility}}">
+                    <TextBlock Style="{StaticResource SectionTitle}" Text="Options" Margin="0,16,0,4" />
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="Policy profile" Margin="0,0,0,2" />
+                    <ComboBox ItemsSource="{Binding ProfileOptions}" SelectedItem="{Binding SelectedProfile}" DisplayMemberPath="Name" AutomationProperties.Name="Policy profile" />
+                    <CheckBox IsChecked="{Binding IncludeChildProcesses}" Margin="0,8,0,0">
+                        <TextBlock TextWrapping="Wrap" Text="Automatically restrict helper programs it starts from its own folder (programs outside the folder are only reported)" />
+                    </CheckBox>
+                    <CheckBox IsChecked="{Binding FollowSignedUpdates}" Margin="0,6,0,0">
+                        <TextBlock TextWrapping="Wrap" Text="Follow updates: if it starts from a new location with a valid signature from the same publisher, restrict the new location too" />
+                    </CheckBox>
+                    <CheckBox IsChecked="{Binding AllowSystemComponent}" Margin="0,6,0,0" Visibility="{Binding ShowSystemComponentOption, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource StatusWarningBrush}"
+                                   Text="Allow system component: I understand restricting a Windows component affects every application that uses it (administrators only)" />
+                    </CheckBox>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</Window>

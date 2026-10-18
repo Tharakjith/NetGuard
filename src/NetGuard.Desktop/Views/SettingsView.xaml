@@ -1,0 +1,85 @@
+<UserControl x:Class="NetGuard.Desktop.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="0,0,12,24" MaxWidth="900" HorizontalAlignment="Left">
+            <TextBlock Style="{StaticResource PageTitle}" Text="Settings" />
+            <TextBlock Style="{StaticResource PageSubtitle}" Text="Interface preferences apply to your account only. Service settings apply to the whole computer and require an elevated administrator." />
+            <Border Style="{StaticResource WarningPanel}" Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibility}}">
+                <TextBlock Text="{Binding ErrorMessage}" TextWrapping="Wrap" />
+            </Border>
+            <Border Style="{StaticResource InfoPanel}" Visibility="{Binding StatusMessage, Converter={StaticResource NullToVisibility}}">
+                <TextBlock Text="{Binding StatusMessage}" TextWrapping="Wrap" />
+            </Border>
+
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource SectionTitle}" Text="Appearance" />
+                    <StackPanel Orientation="Horizontal">
+                        <RadioButton GroupName="Theme" Content="Use Windows setting" IsChecked="{Binding ThemeSystem}" Margin="0,0,16,0" />
+                        <RadioButton GroupName="Theme" Content="Light" IsChecked="{Binding ThemeLight}" Margin="0,0,16,0" />
+                        <RadioButton GroupName="Theme" Content="Dark" IsChecked="{Binding ThemeDark}" />
+                    </StackPanel>
+                    <CheckBox Content="Closing the window keeps NetGuard in the notification area" IsChecked="{Binding CloseToTray}" Margin="0,12,0,0" />
+                    <CheckBox Content="Start the NetGuard window in the notification area when I sign in" IsChecked="{Binding StartWithWindows}" Margin="0,6,0,0" />
+                    <TextBlock Style="{StaticResource Caption}" Margin="24,2,0,0"
+                               Text="Optional and visible in Task Manager → Startup apps. Enforcement does not depend on this window; the service always runs." />
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource SectionTitle}" Text="Notifications" />
+                    <ItemsControl ItemsSource="{Binding Notifications}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <CheckBox Content="{Binding Label}" IsChecked="{Binding IsEnabled}" IsEnabled="{Binding CanChange}" Margin="0,4" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource Card}">
+                <StackPanel IsEnabled="{Binding CanEditServiceSettings}">
+                    <TextBlock Style="{StaticResource SectionTitle}" Text="Service settings (administrators)" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="140" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition />
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="Keep activity log entries for (days, 7–3650)" VerticalAlignment="Center" Margin="0,4,16,4" />
+                        <TextBox Grid.Column="1" Text="{Binding AuditRetentionDays}" Margin="0,4" AutomationProperties.Name="Audit retention days" />
+                        <TextBlock Grid.Row="1" Text="Keep service log files for (days, 1–365)" VerticalAlignment="Center" Margin="0,4,16,4" />
+                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding LogRetentionDays}" Margin="0,4" AutomationProperties.Name="Log retention days" />
+                        <TextBlock Grid.Row="2" Text="Re-verify all rules every (minutes, 1–1440)" VerticalAlignment="Center" Margin="0,4,16,4" />
+                        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding IntegrityCheckIntervalMinutes}" Margin="0,4" AutomationProperties.Name="Integrity check interval" />
+                        <TextBlock Grid.Row="3" Text="While-running rules: wait after exit before removing (seconds, 0–300)" VerticalAlignment="Center" Margin="0,4,16,4" />
+                        <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding WhileRunningGraceSeconds}" Margin="0,4" AutomationProperties.Name="Grace period seconds" />
+                        <TextBlock Grid.Row="4" Text="Longest temporary exception (minutes, 1–1440)" VerticalAlignment="Center" Margin="0,4,16,4" />
+                        <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding MaxTemporaryExceptionMinutes}" Margin="0,4" AutomationProperties.Name="Maximum exception minutes" />
+                    </Grid>
+                    <CheckBox Content="Standard users may view status and activity logs" IsChecked="{Binding AllowStandardUserRead}" Margin="0,10,0,0" />
+                    <CheckBox Content="Observe blocked connection attempts (requires the 'Filtering Platform Connection' audit policy)" IsChecked="{Binding ObserveBlockedConnections}" Margin="0,6,0,0" />
+                    <Button Style="{DynamicResource AccentButtonStyle}" Content="Save service settings" Command="{Binding SaveServiceSettingsCommand}" HorizontalAlignment="Left" Margin="0,12,0,0" />
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource SectionTitle}" Text="Backup and policy exchange" />
+                    <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,8"
+                               Text="Export creates a versioned JSON document (schema netguard-policy v1) that can be imported on this or another computer. Imports are validated and previewed before anything changes, and a database backup is taken first." />
+                    <WrapPanel>
+                        <Button Content="Export configuration…" Command="{Binding ExportCommand}" Margin="0,0,8,8" />
+                        <Button Content="Import configuration…" Command="{Binding ImportCommand}" Margin="0,0,8,8" />
+                        <Button Content="Create database backup" Command="{Binding BackupCommand}" Margin="0,0,8,8" />
+                    </WrapPanel>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

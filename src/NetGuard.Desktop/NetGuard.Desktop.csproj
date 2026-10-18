@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <OutputType>WinExe</OutputType>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <RootNamespace>NetGuard.Desktop</RootNamespace>
+    <AssemblyName>NetGuard.Desktop</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\netguard.ico</ApplicationIcon>
+    <!-- WPF0001: Fluent ThemeMode is marked experimental in .NET 9 WPF.
+         WFO0003: WinForms analyzer; this is a WPF app (only NotifyIcon comes from WinForms) and WPF takes
+         per-monitor DPI awareness from the manifest. -->
+    <NoWarn>$(NoWarn);WPF0001;WFO0003</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- WPF and WinForms both define Application/MessageBox; only WinForms' NotifyIcon is used. -->
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NetGuard.Contracts\NetGuard.Contracts.csproj" />
+    <ProjectReference Include="..\NetGuard.Ipc\NetGuard.Ipc.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.ServiceProcess.ServiceController" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\netguard.ico" />
+  </ItemGroup>
+</Project>

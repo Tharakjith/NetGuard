@@ -1,0 +1,121 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
+
+  <!--
+    NetGuard Enterprise per-machine MSI.
+    Silent install:    msiexec /i NetGuardEnterprise-1.0.0-x64.msi /qn /l*v install.log
+    Silent uninstall:  msiexec /x {ProductCode} /qn            (removes NetGuard-owned firewall rules)
+    Keep rules on uninstall (for example when migrating to Group Policy):  msiexec /x ... KEEPRULES=1
+  -->
+  <Package Name="NetGuard Enterprise"
+           Manufacturer="NetGuard Enterprise"
+           Version="$(var.ProductVersion)"
+           UpgradeCode="7A4E2C3B-6D5F-4E8A-9B1C-2D3E4F5A6B7C"
+           Scope="perMachine"
+           Compressed="yes">
+
+    <!-- Upgrades never run the rule clean-up, so persistent restrictions stay in place across versions. -->
+    <MajorUpgrade DowngradeErrorMessage="A newer version of NetGuard Enterprise is already installed." Schedule="afterInstallInitialize" />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+    <Icon Id="NetGuardIcon" SourceFile="$(var.RepoRoot)src\NetGuard.Desktop\Assets\netguard.ico" />
+    <Property Id="ARPPRODUCTICON" Value="NetGuardIcon" />
+    <Property Id="ARPNOMODIFY" Value="1" />
+    <Property Id="KEEPRULES" Value="0" Secure="yes" />
+
+    <Launch Condition="Installed OR VersionNT64 &gt;= 603" Message="NetGuard Enterprise requires 64-bit Windows 10 or later." />
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="NetGuard Enterprise">
+        <Directory Id="ServiceFolder" Name="Service" />
+        <Directory Id="DesktopAppFolder" Name="Desktop" />
+        <Directory Id="DocsFolder" Name="Docs" />
+      </Directory>
+    </StandardDirectory>
+
+    <StandardDirectory Id="CommonAppDataFolder">
+      <Directory Id="DataRoot" Name="NetGuard">
+        <Directory Id="PoliciesFolder" Name="Policies" />
+      </Directory>
+    </StandardDirectory>
+
+    <StandardDirectory Id="ProgramMenuFolder" />
+
+    <Feature Id="Main" Title="NetGuard Enterprise" Level="1" AllowAbsent="no">
+      <ComponentGroupRef Id="ServiceComponents" />
+      <ComponentGroupRef Id="DesktopComponents" />
+      <ComponentGroupRef Id="DocsComponents" />
+      <ComponentRef Id="DataFolders" />
+      <ComponentRef Id="StartMenuShortcut" />
+    </Feature>
+
+    <!-- Remove only NetGuard-owned rules on a real uninstall (not on upgrade), unless KEEPRULES=1. -->
+    <CustomAction Id="CleanupNetGuardRules"
+                  FileRef="ServiceExe"
+                  ExeCommand="cleanup-rules"
+                  Execute="deferred"
+                  Impersonate="no"
+                  Return="ignore" />
+    <InstallExecuteSequence>
+      <Custom Action="CleanupNetGuardRules" After="StopServices"
+              Condition="REMOVE~=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE AND KEEPRULES&lt;&gt;&quot;1&quot;" />
+    </InstallExecuteSequence>
+  </Package>
+
+  <Fragment>
+    <ComponentGroup Id="ServiceComponents" Directory="ServiceFolder">
+      <Component Id="ServiceExecutable" Guid="2F6A3B1C-8D4E-4A5B-9C6D-7E8F9A0B1C2D">
+        <File Id="ServiceExe" Source="$(var.PublishRoot)service\NetGuard.Service.exe" KeyPath="yes" />
+        <ServiceInstall Id="NetGuardServiceInstall"
+                        Name="NetGuardService"
+                        DisplayName="NetGuard Enterprise"
+                        Description="Enforces per-application network policies with Windows Defender Firewall and verifies them continuously."
+                        Type="ownProcess"
+                        Start="auto"
+                        ErrorControl="normal"
+                        Account="LocalSystem"
+                        Vital="yes">
+          <!-- Recover automatically: restart after 10 s on the first three failures; reset the count daily. -->
+          <util:ServiceConfig FirstFailureActionType="restart"
+                              SecondFailureActionType="restart"
+                              ThirdFailureActionType="restart"
+                              RestartServiceDelayInSeconds="10"
+                              ResetPeriodInDays="1" />
+        </ServiceInstall>
+        <ServiceControl Id="NetGuardServiceControl" Name="NetGuardService" Start="install" Stop="both" Remove="uninstall" Wait="yes" />
+      </Component>
+      <Files Include="$(var.PublishRoot)service\**">
+        <Exclude Files="$(var.PublishRoot)service\NetGuard.Service.exe" />
+      </Files>
+    </ComponentGroup>
+
+    <ComponentGroup Id="DesktopComponents" Directory="DesktopAppFolder">
+      <Files Include="$(var.PublishRoot)desktop\**" />
+    </ComponentGroup>
+
+    <ComponentGroup Id="DocsComponents" Directory="DocsFolder">
+      <Files Include="$(var.PublishRoot)docs\**" />
+    </ComponentGroup>
+
+    <!-- Configuration, logs and backups: SYSTEM and Administrators only, inheritance blocked. -->
+    <Component Id="DataFolders" Directory="DataRoot" Guid="5B8C9D0E-1F2A-4B3C-8D4E-5F6A7B8C9D0E">
+      <CreateFolder>
+        <PermissionEx Sddl="D:PAI(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)" />
+      </CreateFolder>
+      <CreateFolder Directory="PoliciesFolder">
+        <PermissionEx Sddl="D:PAI(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)" />
+      </CreateFolder>
+      <RegistryValue Root="HKLM" Key="Software\NetGuard Enterprise" Name="DataFolders" Type="integer" Value="1" KeyPath="yes" />
+    </Component>
+
+    <Component Id="StartMenuShortcut" Directory="ProgramMenuFolder" Guid="8E9F0A1B-2C3D-4E5F-A6B7-C8D9E0F1A2B3">
+      <Shortcut Id="NetGuardShortcut"
+                Name="NetGuard Enterprise"
+                Description="Per-application network control"
+                Target="[DesktopAppFolder]NetGuard.Desktop.exe"
+                WorkingDirectory="DesktopAppFolder"
+                Icon="NetGuardIcon" />
+      <RegistryValue Root="HKLM" Key="Software\NetGuard Enterprise" Name="StartMenuShortcut" Type="integer" Value="1" KeyPath="yes" />
+    </Component>
+  </Fragment>
+</Wix>

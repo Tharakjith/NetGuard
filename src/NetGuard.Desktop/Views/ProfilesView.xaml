@@ -1,0 +1,73 @@
+<UserControl x:Class="NetGuard.Desktop.Views.ProfilesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="0,0,12,12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <StackPanel Grid.ColumnSpan="2">
+            <TextBlock Style="{StaticResource PageTitle}" Text="Policy Profiles" />
+            <TextBlock Style="{StaticResource PageSubtitle}"
+                       Text="A profile is a reusable policy. Assign applications to a profile in their policy editor; while the profile is enabled its policy applies to every member (for example, enable 'Offline Work' to block all members at once)." />
+        </StackPanel>
+        <StackPanel Grid.Row="1" Grid.ColumnSpan="2">
+            <WrapPanel Margin="0,0,0,8">
+                <Button Style="{DynamicResource AccentButtonStyle}" Content="New profile…" Command="{Binding NewCommand}" Margin="0,0,8,8" />
+                <Button Content="{Binding ToggleText}" Command="{Binding ToggleCommand}" Margin="0,0,8,8" />
+                <Button Content="Edit…" Command="{Binding EditCommand}" Margin="0,0,8,8" />
+                <Button Content="Delete…" Command="{Binding DeleteCommand}" Margin="0,0,8,8" />
+            </WrapPanel>
+            <Border Style="{StaticResource WarningPanel}" Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibility}}">
+                <TextBlock Text="{Binding ErrorMessage}" TextWrapping="Wrap" />
+            </Border>
+            <Border Style="{StaticResource InfoPanel}" Visibility="{Binding StatusMessage, Converter={StaticResource NullToVisibility}}">
+                <TextBlock Text="{Binding StatusMessage}" TextWrapping="Wrap" />
+            </Border>
+        </StackPanel>
+        <ListBox Grid.Row="2" ItemsSource="{Binding Items}" SelectedItem="{Binding Selected}" AutomationProperties.Name="Profiles" Margin="0,0,12,0">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Margin="4,8">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding Profile.Name}" FontWeight="SemiBold" />
+                            <TextBlock Text="  · enabled" Foreground="{DynamicResource StatusSuccessBrush}" Visibility="{Binding Profile.IsEnabled, Converter={StaticResource BoolToVisibility}}" />
+                            <TextBlock Text="  · disabled" Style="{StaticResource Caption}" Visibility="{Binding Profile.IsEnabled, Converter={StaticResource BoolToVisibility}, ConverterParameter=invert}" />
+                        </StackPanel>
+                        <TextBlock Style="{StaticResource Caption}">
+                            <Run Text="{Binding Profile.Policy, Converter={StaticResource PolicyText}, Mode=OneWay}" /> · <Run Text="{Binding MemberCount, Mode=OneWay}" /> member(s)
+                        </TextBlock>
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+        <Border Grid.Row="2" Grid.Column="1" Style="{StaticResource Card}" Margin="0" VerticalAlignment="Top" DataContext="{Binding Selected}"
+                Visibility="{Binding Converter={StaticResource NullToVisibility}}">
+            <StackPanel>
+                <TextBlock Text="{Binding Profile.Name}" FontSize="18" FontWeight="SemiBold" />
+                <TextBlock Text="{Binding Profile.Description}" TextWrapping="Wrap" Margin="0,4,0,8" />
+                <TextBlock Style="{StaticResource FieldLabel}" Text="Policy" />
+                <TextBlock Text="{Binding Profile.Policy, Converter={StaticResource PolicyText}}" TextWrapping="Wrap" />
+                <TextBlock Style="{StaticResource FieldLabel}" Text="Source" />
+                <TextBlock Text="{Binding Profile.Source}" />
+                <TextBlock Style="{StaticResource FieldLabel}" Text="Members" />
+                <TextBlock Style="{StaticResource Caption}" Text="No applications are assigned to this profile."
+                           Visibility="{Binding MemberNames, Converter={StaticResource NullToVisibility}, ConverterParameter=invert}" />
+                <ItemsControl ItemsSource="{Binding MemberNames}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate><TextBlock Text="{Binding StringFormat='• {0}'}" /></DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <TextBlock Style="{StaticResource FieldLabel}" Text="Last modified" />
+                <TextBlock>
+                    <Run Text="{Binding Profile.ModifiedAt, Converter={StaticResource LocalTime}, Mode=OneWay}" /> by <Run Text="{Binding Profile.ModifiedBy, Mode=OneWay}" />
+                </TextBlock>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

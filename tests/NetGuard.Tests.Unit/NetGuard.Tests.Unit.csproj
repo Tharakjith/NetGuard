@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <RootNamespace>NetGuard.Tests.Unit</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\NetGuard.Core\NetGuard.Core.csproj" />
+    <ProjectReference Include="..\..\src\NetGuard.Ipc\NetGuard.Ipc.csproj" />
+    <ProjectReference Include="..\..\src\NetGuard.Logging\NetGuard.Logging.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\schemas\netguard-policy.v1.schema.json" Link="netguard-policy.v1.schema.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

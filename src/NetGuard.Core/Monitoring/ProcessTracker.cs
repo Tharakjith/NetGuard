@@ -98,11 +98,14 @@ public sealed class ProcessTracker : IDisposable
         _monitor.ProcessStarted -= OnStarted;
         _monitor.ProcessExited -= OnExited;
         _work.Writer.TryComplete();
+        // Idempotent: the worker disposes this on shutdown and the host's service provider disposes it again.
         foreach (var timer in _standbyTimers.Values)
         {
             timer.Cancel();
             timer.Dispose();
         }
+
+        _standbyTimers.Clear();
     }
 
     private void OnStarted(object? sender, ObservedProcess process) => _work.Writer.TryWrite(new Work(WorkKind.Started, process));

@@ -89,6 +89,24 @@ public sealed class ProcessTrackerTests
     }
 
     [Fact]
+    public async Task Dispose_WithPendingStandbyTimer_CanBeCalledTwice()
+    {
+        // The service worker disposes the tracker on stop and the host's service provider disposes it again;
+        // a second Cancel() on a disposed grace timer used to crash the service on every shutdown.
+        await using var h = await Harness.StartAsync();
+        await h.Store.SaveSettingsAsync(new ServiceSettings { WhileRunningGraceSeconds = 120 });
+        var id = await h.AddAsync(Harness.AppPath, WhileRunning);
+        var process = h.Monitor.Launch(Harness.AppPath);
+        await Harness.WaitUntilAsync(() => h.OwnedRulesFor(Harness.AppPath) == 1);
+        h.Monitor.Exit(process);
+        await Harness.WaitUntilAsync(() => !h.Registry.IsRunning(id));
+        await Task.Delay(200);
+
+        h.Tracker.Dispose();
+        Assert.Null(Record.Exception(h.Tracker.Dispose));
+    }
+
+    [Fact]
     public async Task AlreadyRunningApplication_IsDetectedWhenAdded()
     {
         await using var h = await Harness.StartAsync();

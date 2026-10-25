@@ -60,11 +60,14 @@ public sealed class OrganizationPolicyLoader : IDisposable
         _watcher.EnableRaisingEvents = true;
     }
 
+    /// <summary>Idempotent: the worker disposes this on shutdown and the host's service provider disposes it again.</summary>
     public void Dispose()
     {
         _watcher?.Dispose();
-        _debounce?.Cancel();
-        _debounce?.Dispose();
+        _watcher = null;
+        var debounce = Interlocked.Exchange(ref _debounce, null);
+        debounce?.Cancel();
+        debounce?.Dispose();
     }
 
     private void Schedule()

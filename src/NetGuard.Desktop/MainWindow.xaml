@@ -72,6 +72,12 @@
             <TextBlock DockPanel.Dock="Bottom" Margin="16,8,16,12" Style="{StaticResource Caption}" Text="{Binding ConnectionText}" />
             <ListBox ItemsSource="{Binding Pages}" SelectedItem="{Binding CurrentPage}" BorderThickness="0" Background="Transparent"
                      AutomationProperties.Name="Navigation" KeyboardNavigation.TabNavigation="Once">
+                <!-- Screen readers read the item container, not the template; without this they announce the view-model type name. -->
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                        <Setter Property="AutomationProperties.Name" Value="{Binding Title}" />
+                    </Style>
+                </ListBox.ItemContainerStyle>
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal" Margin="4,6" AutomationProperties.Name="{Binding Title}">

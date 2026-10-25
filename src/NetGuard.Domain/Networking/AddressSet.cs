@@ -155,10 +155,34 @@ public sealed class AddressSet : IEquatable<AddressSet>
 
     public override int GetHashCode() => HashCode.Combine(_v4, _v6);
 
+    private static readonly UInt128 IPv6Loopback = UInt128.One;
+
     private static void Append(StringBuilder builder, RangeList list, AddressFamily family)
     {
-        foreach (var (start, end) in list.Ranges)
+        foreach (var (rangeStart, rangeEnd) in list.Ranges)
         {
+            var (start, end) = (rangeStart, rangeEnd);
+            if (family == AddressFamily.InterNetworkV6)
+            {
+                // Windows Firewall rejects any entry that starts or ends at the IPv6 loopback (::1) with E_INVALIDARG,
+                // although ranges spanning it are accepted. Loopback traffic is never filtered by the firewall, so
+                // leaving ::1 out of the boundaries does not change what a rule matches.
+                if (start == IPv6Loopback && end == IPv6Loopback)
+                {
+                    continue;
+                }
+
+                if (start == IPv6Loopback)
+                {
+                    start++;
+                }
+
+                if (end == IPv6Loopback)
+                {
+                    end--;
+                }
+            }
+
             if (builder.Length > 0)
             {
                 builder.Append(',');

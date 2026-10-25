@@ -82,6 +82,22 @@ public sealed class AddressSetTests
     }
 
     [Fact]
+    public void FirewallString_NeverStartsOrEndsAnEntryAtIPv6Loopback()
+    {
+        // Windows Firewall rejects "::1", "::1-x" and "x-::1" (E_INVALIDARG); loopback is never filtered anyway.
+        Assert.Equal("::2-::5", AddressSet.Parse(["::1-::5"]).ToFirewallString());
+        Assert.Equal("::", AddressSet.Parse(["::-::1"]).ToFirewallString());
+        Assert.Equal("10.0.0.1", AddressSet.Parse(["10.0.0.1", "::1"]).ToFirewallString());
+        Assert.Equal("::-::5", AddressSet.Parse(["::-::5"]).ToFirewallString());
+
+        var local = AddressSet.LocalNetwork.ToFirewallString();
+        Assert.DoesNotContain(local.Split(','), entry => entry.Split('-').Contains("::1"));
+        Assert.True(AddressSet.TryParseFirewallString(local, out var parsed, out _));
+        Assert.False(parsed.Contains(IPAddress.IPv6Loopback));
+        Assert.True(parsed.Contains(IPAddress.Parse("fe80::1")));
+    }
+
+    [Fact]
     public void LocalNetwork_IncludesPrivateRangesOnly()
     {
         Assert.True(AddressSet.LocalNetwork.Contains(IPAddress.Parse("192.168.1.10")));

@@ -145,6 +145,13 @@ public static class ServiceBootstrapper
             throw new InvalidOperationException($"A NetGuard service installed from another location already exists ({imagePath}). Uninstall it first.");
         }
 
+        if (imagePath is not null)
+        {
+            // Suspend crash recovery while the files are replaced, so the service control manager cannot restart
+            // the old service (and lock its files) if it fails while stopping. Restored below.
+            Sc("failure", IpcConstants.ServiceName, "reset=", "0", "actions=", "");
+        }
+
         StopService();
         Retry(() =>
         {
